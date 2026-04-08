@@ -59,6 +59,13 @@ jobs:
             done
           done
 
+      # Monorepo: generate freezed/json_serializable code for platform_interface
+      - name: Generate code (platform_interface)
+        run: |
+          cd google_places_sdk_plus_platform_interface
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
       - name: Check formatting
         run: dart format --set-exit-if-changed .
         working-directory: google_places_sdk_plus_android
