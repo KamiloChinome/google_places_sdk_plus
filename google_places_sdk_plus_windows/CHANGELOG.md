@@ -1,3 +1,8 @@
+## 1.1.0
+
+* Update minimum SDK constraints: Dart >=3.11.0, Flutter >=3.41.0
+* Verified compatibility with Flutter 3.41.6
+
 ## 1.0.0
 
 * Stable release — version aligned with all packages

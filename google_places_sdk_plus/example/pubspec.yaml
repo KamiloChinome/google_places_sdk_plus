@@ -4,7 +4,7 @@ description: Demonstrates how to use the google_places_sdk_plus plugin.
 publish_to: 'none'
 
 environment:
-  sdk: ">=3.8.0 <4.0.0"
+  sdk: ">=3.11.0 <4.0.0"
 
 dependencies:
   collection: any
