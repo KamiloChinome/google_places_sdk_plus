@@ -26,18 +26,6 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
 
-      - name: Generate code (platform_interface)
-        run: |
-          cd google_places_sdk_plus_platform_interface
-          flutter pub get
-          dart run build_runner build --delete-conflicting-outputs
-
-      - name: Generate code (http)
-        run: |
-          cd google_places_sdk_plus_http
-          flutter pub get
-          dart run build_runner build --delete-conflicting-outputs
-
       - name: Setup local dependency overrides
         run: |
           PACKAGES=(
@@ -51,24 +39,32 @@ jobs:
             google_places_sdk_plus_macos
             google_places_sdk_plus_windows
           )
-          write_overrides() {
-            local prefix="$1"
-            local target="$2"
-            local skip="$3"
-            echo "dependency_overrides:" > "$target"
-            for pkg in "${PACKAGES[@]}"; do
-              if [ "$pkg" != "$skip" ]; then
-                echo "  $pkg:" >> "$target"
-                echo "    path: ${prefix}$pkg" >> "$target"
+          for pkg in "${PACKAGES[@]}"; do
+            echo "dependency_overrides:" > "$pkg/pubspec_overrides.yaml"
+            for dep in "${PACKAGES[@]}"; do
+              if [ "$dep" != "$pkg" ]; then
+                echo "  $dep:" >> "$pkg/pubspec_overrides.yaml"
+                echo "    path: ../$dep" >> "$pkg/pubspec_overrides.yaml"
               fi
             done
-          }
-          for pkg in "${PACKAGES[@]}"; do
-            write_overrides "../" "$pkg/pubspec_overrides.yaml" "$pkg"
-            if [ -d "$pkg/example" ]; then
-              write_overrides "../../" "$pkg/example/pubspec_overrides.yaml" ""
-            fi
           done
+          echo "dependency_overrides:" > "google_places_sdk_plus/example/pubspec_overrides.yaml"
+          for dep in "${PACKAGES[@]}"; do
+            echo "  $dep:" >> "google_places_sdk_plus/example/pubspec_overrides.yaml"
+            echo "    path: ../../$dep" >> "google_places_sdk_plus/example/pubspec_overrides.yaml"
+          done
+
+      - name: Generate code (platform_interface)
+        run: |
+          cd google_places_sdk_plus_platform_interface
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Generate code (http)
+        run: |
+          cd google_places_sdk_plus_http
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
 
       - name: Analyze and test all packages
         run: |
