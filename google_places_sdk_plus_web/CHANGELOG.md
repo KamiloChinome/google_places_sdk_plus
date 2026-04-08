@@ -1,3 +1,7 @@
+## 1.0.0
+
+* Stable release — version aligned with all packages
+
 ## 0.4.0
 
 Initial release of `google_places_sdk_plus_web`.

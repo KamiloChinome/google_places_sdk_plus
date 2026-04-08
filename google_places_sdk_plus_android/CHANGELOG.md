@@ -1,3 +1,7 @@
+## 1.0.0
+
+* Stable release — version aligned with all packages
+
 ## 0.4.3
 
 * Use UUID for photo references instead of incrementing counter

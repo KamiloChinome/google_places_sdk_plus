@@ -210,6 +210,52 @@ void main() {
         const expected = FetchPlaceResponse(kPlace);
         expect(result, equals(expected));
       });
+
+      test('with regionCode', () async {
+        const placeId = 'my-place-id';
+        const fields = [PlaceField.Location];
+        final result = await flutterGooglePlacesSdk.fetchPlace(
+          placeId,
+          fields: fields,
+          regionCode: 'CO',
+        );
+
+        expect(log, hasLength(2));
+        final call = log[1];
+        expect(call.method, 'fetchPlace');
+        expect(call.arguments['regionCode'], 'CO');
+
+        const expected = FetchPlaceResponse(kPlace);
+        expect(result, equals(expected));
+      });
+    });
+
+    group('deinitialize', () {
+      test('calls platform deinitialize', () async {
+        responses['deinitialize'] = null;
+        await flutterGooglePlacesSdk.deinitialize();
+
+        expect(log, <Matcher>[
+          _getInitializeMatcher(),
+          isMethodCall('deinitialize', arguments: null),
+        ]);
+      });
+
+      test('allows re-initialization after deinitialize', () async {
+        responses['deinitialize'] = null;
+        responses['isInitialized'] = true;
+
+        await flutterGooglePlacesSdk.deinitialize();
+        await flutterGooglePlacesSdk.isInitialized();
+
+        final methodNames = log.map((c) => c.method).toList();
+        expect(methodNames, [
+          'initialize',
+          'deinitialize',
+          'initialize',
+          'isInitialized',
+        ]);
+      });
     });
 
     group('fetchPlacePhoto', () {

@@ -163,6 +163,19 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  Future<void> _doDeinit() async {
+    if (_placesVar == null) return;
+    try {
+      await _places.deinitialize();
+      setState(() {
+        _placesVar = null;
+      });
+      debugPrint('Places deinitialized');
+    } catch (err) {
+      debugPrint('Deinitialize error: $err');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final initWidgets = _buildInitWidgets();
@@ -445,9 +458,18 @@ class _MyHomePageState extends State<MyHomePage> {
           Text('Initialized: ' + (isInit ? 'true' : 'false')),
         ],
       ),
-      ElevatedButton(
-        onPressed: isInit ? null : _doInit,
-        child: const Text('Initialize!'),
+      Row(
+        children: [
+          ElevatedButton(
+            onPressed: isInit ? null : _doInit,
+            child: const Text('Initialize!'),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton(
+            onPressed: isInit ? _doDeinit : null,
+            child: const Text('Deinitialize'),
+          ),
+        ],
       ),
     ];
   }

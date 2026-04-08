@@ -1,0 +1,207 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (validate without publishing)'
+        required: false
+        type: boolean
+        default: true
+
+env:
+  FLUTTER_VERSION: '3.38.5'
+
+jobs:
+  validate:
+    name: Validate all packages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Generate code (platform_interface)
+        run: |
+          cd google_places_sdk_plus_platform_interface
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Generate code (http)
+        run: |
+          cd google_places_sdk_plus_http
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Setup local dependency overrides
+        run: |
+          PACKAGES=(
+            google_places_sdk_plus
+            google_places_sdk_plus_platform_interface
+            google_places_sdk_plus_android
+            google_places_sdk_plus_ios
+            google_places_sdk_plus_web
+            google_places_sdk_plus_http
+            google_places_sdk_plus_linux
+            google_places_sdk_plus_macos
+            google_places_sdk_plus_windows
+          )
+          write_overrides() {
+            local prefix="$1"
+            local target="$2"
+            local skip="$3"
+            echo "dependency_overrides:" > "$target"
+            for pkg in "${PACKAGES[@]}"; do
+              if [ "$pkg" != "$skip" ]; then
+                echo "  $pkg:" >> "$target"
+                echo "    path: ${prefix}$pkg" >> "$target"
+              fi
+            done
+          }
+          for pkg in "${PACKAGES[@]}"; do
+            write_overrides "../" "$pkg/pubspec_overrides.yaml" "$pkg"
+            if [ -d "$pkg/example" ]; then
+              write_overrides "../../" "$pkg/example/pubspec_overrides.yaml" ""
+            fi
+          done
+
+      - name: Analyze and test all packages
+        run: |
+          PACKAGES=(
+            google_places_sdk_plus_platform_interface
+            google_places_sdk_plus_http
+            google_places_sdk_plus_linux
+            google_places_sdk_plus_macos
+            google_places_sdk_plus_windows
+            google_places_sdk_plus_android
+            google_places_sdk_plus_ios
+            google_places_sdk_plus_web
+            google_places_sdk_plus
+          )
+          for pkg in "${PACKAGES[@]}"; do
+            echo "=== $pkg ==="
+            cd "$pkg"
+            flutter pub get
+            flutter analyze
+            if [ "$pkg" = "google_places_sdk_plus_web" ]; then
+              flutter test --platform chrome || true
+            else
+              flutter test
+            fi
+            cd ..
+          done
+
+  publish:
+    name: Publish to pub.dev
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Generate code (platform_interface)
+        run: |
+          cd google_places_sdk_plus_platform_interface
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Generate code (http)
+        run: |
+          cd google_places_sdk_plus_http
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
+      # Layer 1: platform_interface (no internal deps)
+      - name: Publish platform_interface
+        run: |
+          cd google_places_sdk_plus_platform_interface
+          dart pub publish ${{ inputs.dry_run && '--dry-run' || '--force' }}
+
+      - name: Wait for pub.dev indexing
+        if: ${{ !inputs.dry_run }}
+        run: sleep 30
+
+      # Layer 2: http (depends on platform_interface)
+      - name: Publish http
+        run: |
+          cd google_places_sdk_plus_http
+          dart pub publish ${{ inputs.dry_run && '--dry-run' || '--force' }}
+
+      - name: Wait for pub.dev indexing
+        if: ${{ !inputs.dry_run }}
+        run: sleep 30
+
+      # Layer 3: platform implementations
+      - name: Publish android
+        run: |
+          cd google_places_sdk_plus_android
+          dart pub publish ${{ inputs.dry_run && '--dry-run' || '--force' }}
+
+      - name: Publish ios
+        run: |
+          cd google_places_sdk_plus_ios
+          dart pub publish ${{ inputs.dry_run && '--dry-run' || '--force' }}
+
+      - name: Publish web
+        run: |
+          cd google_places_sdk_plus_web
+          dart pub publish ${{ inputs.dry_run && '--dry-run' || '--force' }}
+
+      - name: Publish linux
+        run: |
+          cd google_places_sdk_plus_linux
+          dart pub publish ${{ inputs.dry_run && '--dry-run' || '--force' }}
+
+      - name: Publish macos
+        run: |
+          cd google_places_sdk_plus_macos
+          dart pub publish ${{ inputs.dry_run && '--dry-run' || '--force' }}
+
+      - name: Publish windows
+        run: |
+          cd google_places_sdk_plus_windows
+          dart pub publish ${{ inputs.dry_run && '--dry-run' || '--force' }}
+
+      - name: Wait for pub.dev indexing
+        if: ${{ !inputs.dry_run }}
+        run: sleep 30
+
+      # Layer 4: main package (depends on all platform packages)
+      - name: Publish main package
+        run: |
+          cd google_places_sdk_plus
+          dart pub publish ${{ inputs.dry_run && '--dry-run' || '--force' }}
+
+  release:
+    name: Create GitHub Release
+    needs: publish
+    if: ${{ !inputs.dry_run }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0
+          name: v1.0.0
+          generate_release_notes: true

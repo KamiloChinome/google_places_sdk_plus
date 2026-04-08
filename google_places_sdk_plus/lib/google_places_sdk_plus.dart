@@ -119,12 +119,14 @@ class FlutterGooglePlacesSdk {
     String placeId, {
     required List<PlaceField> fields,
     bool? newSessionToken,
+    String? regionCode,
   }) {
     return _addMethodCall(
       () => platform.fetchPlace(
         placeId,
         fields: fields,
         newSessionToken: newSessionToken,
+        regionCode: regionCode,
       ),
     );
   }
@@ -152,6 +154,17 @@ class FlutterGooglePlacesSdk {
   /// Returns whether or not the client has been initialized.
   Future<bool?> isInitialized() {
     return _addMethodCall(platform.isInitialized);
+  }
+
+  /// Puts Places into its uninitialized state.
+  ///
+  /// Note: this does not need to be called in order to change the API key.
+  /// Use [updateSettings] instead.
+  Future<void> deinitialize() {
+    return _addMethodCall(() async {
+      await platform.deinitialize();
+      _initialization = null;
+    });
   }
 
   /// Fetches places based on an ambiguous text query.

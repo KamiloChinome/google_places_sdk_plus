@@ -1,6 +1,7 @@
 # google_places_sdk_plus
 
 [![pub package](https://img.shields.io/pub/v/google_places_sdk_plus.svg)](https://pub.dev/packages/google_places_sdk_plus)
+[![Tests](https://github.com/KamiloChinome/google_places_sdk_plus/actions/workflows/tests.yml/badge.svg)](https://github.com/KamiloChinome/google_places_sdk_plus/actions/workflows/tests.yml)
 
 A Flutter plugin for the [Google Places API (New)](https://developers.google.com/maps/documentation/places/web-service/op-overview) using native SDKs on each platform.
 
@@ -21,7 +22,7 @@ Originally forked from [`flutter_google_places_sdk`](https://github.com/matanshu
 
 ```yaml
 dependencies:
-  google_places_sdk_plus: ^0.5.0
+  google_places_sdk_plus: ^1.0.0
 ```
 
 ## Quick Start
@@ -116,7 +117,7 @@ Fields not listed below are supported on all platforms.
 | `PrimaryType` | Yes | No | Yes | Yes |
 | `PrimaryTypeDisplayName` | Yes | No | Yes | Yes |
 | `ShortFormattedAddress` | Yes | No | No | Yes |
-| `InternationalPhoneNumber` | Yes | No | Yes | Yes |
+| `InternationalPhoneNumber` | Yes | Yes | Yes | Yes |
 | `AdrFormatAddress` | Yes | No | Yes | Yes |
 | `GoogleMapsUri` | Yes | No | Yes | Yes |
 | `GoogleMapsLinks` | Yes | No | No | Yes |
@@ -170,6 +171,10 @@ This is a federated plugin. The app-facing package (`google_places_sdk_plus`) de
 | [`google_places_sdk_plus_linux`](https://pub.dev/packages/google_places_sdk_plus_linux) | Linux (delegates to HTTP) |
 | [`google_places_sdk_plus_macos`](https://pub.dev/packages/google_places_sdk_plus_macos) | macOS (delegates to HTTP) |
 | [`google_places_sdk_plus_windows`](https://pub.dev/packages/google_places_sdk_plus_windows) | Windows (delegates to HTTP) |
+
+## Migrating from 0.x
+
+See [MIGRATION.md](https://github.com/KamiloChinome/google_places_sdk_plus/blob/main/MIGRATION.md) for upgrade instructions. There are no breaking changes in 1.0.0.
 
 ## License
 
