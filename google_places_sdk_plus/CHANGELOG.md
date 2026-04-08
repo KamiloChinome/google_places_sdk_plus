@@ -1,3 +1,7 @@
+## 0.5.9
+
+* Fix: iOS `internationalPhoneNumber` returned `null` instead of the actual value — `GMSPlace.phoneNumber` already provides the international format (updated `google_places_sdk_plus_ios` to `0.3.7`)
+
 ## 0.5.8
 
 * Fix: iOS `rating` and `userRatingsTotal` could still return `0`/`0.0` on some places — uses direct value checks now (updated `google_places_sdk_plus_ios` to `0.3.6`)

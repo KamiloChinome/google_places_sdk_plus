@@ -338,12 +338,13 @@ public class SwiftFlutterGooglePlacesSdkIosPlugin: NSObject, FlutterPlugin {
             // ===== New Places API (New) fields =====
             // Text / LocalizedText fields
             "displayName": localizedTextToMap(text: place.name, languageCode: nil),
-            // primaryType, primaryTypeDisplayName, shortFormattedAddress, internationalPhoneNumber
+            // primaryType, primaryTypeDisplayName, shortFormattedAddress
             // are not available in iOS SDK 10.x — serialize as nil
             "primaryType": nil as String?,
             "primaryTypeDisplayName": nil as Dictionary<String, Any?>?,
             "shortFormattedAddress": nil as String?,
-            "internationalPhoneNumber": nil as String?,
+            // GMSPlace.phoneNumber returns international format (with "+" country code)
+            "internationalPhoneNumber": place.phoneNumber,
             "nationalPhoneNumber": place.phoneNumber,
             "adrFormatAddress": nil as String?,
             "editorialSummary": localizedTextToMap(text: place.editorialSummary, languageCode: nil),

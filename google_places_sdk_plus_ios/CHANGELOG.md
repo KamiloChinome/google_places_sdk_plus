@@ -1,3 +1,7 @@
+## 0.3.7
+
+* Fix: `internationalPhoneNumber` was hardcoded as `nil` — now maps to `GMSPlace.phoneNumber` which already returns the international format
+
 ## 0.3.6
 
 * Fix: `rating` and `userRatingsTotal` still returned `0`/`0.0` on some places — changed check from `userRatingsTotal == 0` to direct value checks (`rating > 0`, `userRatingsTotal > 0`)

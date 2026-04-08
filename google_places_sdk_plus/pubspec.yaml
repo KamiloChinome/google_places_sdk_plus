@@ -1,6 +1,6 @@
 name: google_places_sdk_plus
 description: A Flutter plugin for google places sdk that uses the native libraries on each platform
-version: 0.5.8
+version: 0.5.9
 homepage: https://github.com/KamiloChinome/google_places_sdk_plus/tree/master/google_places_sdk_plus
 
 environment:

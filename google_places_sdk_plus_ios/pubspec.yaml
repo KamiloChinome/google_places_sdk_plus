@@ -1,6 +1,6 @@
 name: google_places_sdk_plus_ios
 description: The iOS implementation of Flutter plugin for google places sdk
-version: 0.3.6
+version: 0.3.7
 homepage: https://github.com/KamiloChinome/google_places_sdk_plus/tree/master/google_places_sdk_plus_ios
 
 environment:
