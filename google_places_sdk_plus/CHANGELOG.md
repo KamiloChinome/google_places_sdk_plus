@@ -1,3 +1,10 @@
+## 1.0.0
+
+* Stable release — all 9 packages version-aligned at 1.0.0
+* Added `regionCode` parameter to `fetchPlace()`
+* Added `deinitialize()` method to reset the Places client
+* No breaking changes from 0.5.x
+
 ## 0.5.9
 
 * Fix: iOS `internationalPhoneNumber` returned `null` instead of the actual value — `GMSPlace.phoneNumber` already provides the international format (updated `google_places_sdk_plus_ios` to `0.3.7`)

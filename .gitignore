@@ -53,3 +53,6 @@ build/
 # Generated dart files
 *.g.dart
 *.freezed.dart
+
+# Local dependency overrides
+pubspec_overrides.yaml

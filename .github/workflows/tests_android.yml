@@ -35,6 +35,37 @@ jobs:
       - name: Flutter version
         run: flutter --version
 
+      # Monorepo: override deps to use local packages
+      - name: Setup local dependency overrides
+        run: |
+          PACKAGES=(
+            google_places_sdk_plus
+            google_places_sdk_plus_platform_interface
+            google_places_sdk_plus_android
+            google_places_sdk_plus_ios
+            google_places_sdk_plus_web
+            google_places_sdk_plus_http
+            google_places_sdk_plus_linux
+            google_places_sdk_plus_macos
+            google_places_sdk_plus_windows
+          )
+          for pkg in "${PACKAGES[@]}"; do
+            echo "dependency_overrides:" > "$pkg/pubspec_overrides.yaml"
+            for dep in "${PACKAGES[@]}"; do
+              if [ "$dep" != "$pkg" ]; then
+                echo "  $dep:" >> "$pkg/pubspec_overrides.yaml"
+                echo "    path: ../$dep" >> "$pkg/pubspec_overrides.yaml"
+              fi
+            done
+          done
+
+      # Monorepo: generate freezed/json_serializable code for platform_interface
+      - name: Generate code (platform_interface)
+        run: |
+          cd google_places_sdk_plus_platform_interface
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
       - name: Check formatting
         run: dart format --set-exit-if-changed .
         working-directory: google_places_sdk_plus_android
@@ -89,6 +120,30 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
+
+      # Monorepo: override deps to use local packages
+      - name: Setup local dependency overrides
+        run: |
+          PACKAGES=(
+            google_places_sdk_plus
+            google_places_sdk_plus_platform_interface
+            google_places_sdk_plus_android
+            google_places_sdk_plus_ios
+            google_places_sdk_plus_web
+            google_places_sdk_plus_http
+            google_places_sdk_plus_linux
+            google_places_sdk_plus_macos
+            google_places_sdk_plus_windows
+          )
+          for pkg in "${PACKAGES[@]}"; do
+            echo "dependency_overrides:" > "$pkg/pubspec_overrides.yaml"
+            for dep in "${PACKAGES[@]}"; do
+              if [ "$dep" != "$pkg" ]; then
+                echo "  $dep:" >> "$pkg/pubspec_overrides.yaml"
+                echo "    path: ../$dep" >> "$pkg/pubspec_overrides.yaml"
+              fi
+            done
+          done
 
       # Ensure flutter.jar is cached (needed by build.gradle compileOnly)
       - name: Precache Flutter artifacts

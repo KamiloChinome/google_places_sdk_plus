@@ -1,3 +1,8 @@
+## 1.0.0
+
+* Stable release
+* Fix: `FetchPlaceResponse` internal factory class name corrected from `_FetchPlacePhotoResponseImage` to `_FetchPlaceResponse`
+
 ## 0.5.0
 
 Initial release of `google_places_sdk_plus_platform_interface`.

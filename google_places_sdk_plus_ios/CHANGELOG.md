@@ -1,3 +1,7 @@
+## 1.0.0
+
+* Stable release — version aligned with all packages
+
 ## 0.3.7
 
 * Fix: `internationalPhoneNumber` was hardcoded as `nil` — now maps to `GMSPlace.phoneNumber` which already returns the international format

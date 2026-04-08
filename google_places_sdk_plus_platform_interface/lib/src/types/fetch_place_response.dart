@@ -10,5 +10,5 @@ sealed class FetchPlaceResponse with _$FetchPlaceResponse {
   const factory FetchPlaceResponse(
     /// the Place returned by the response.
     Place? place,
-  ) = _FetchPlacePhotoResponseImage;
+  ) = _FetchPlaceResponse;
 }

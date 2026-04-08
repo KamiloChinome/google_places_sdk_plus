@@ -61,19 +61,6 @@ jobs:
       - name: Flutter version
         run: flutter --version
 
-      # Monorepo: generate freezed/json_serializable code for packages that need it
-      - name: Generate code (platform_interface)
-        run: |
-          cd google_places_sdk_plus_platform_interface
-          flutter pub get
-          dart run build_runner build --delete-conflicting-outputs
-
-      - name: Generate code (http)
-        run: |
-          cd google_places_sdk_plus_http
-          flutter pub get
-          dart run build_runner build --delete-conflicting-outputs
-
       # Monorepo: override deps to use local packages (fork API may differ from pub.dev)
       - name: Setup local dependency overrides
         run: |
@@ -100,10 +87,27 @@ jobs:
               fi
             done
           }
+          # Overrides for code generation packages (always needed)
+          write_overrides "../" "google_places_sdk_plus_platform_interface/pubspec_overrides.yaml" "google_places_sdk_plus_platform_interface"
+          write_overrides "../" "google_places_sdk_plus_http/pubspec_overrides.yaml" "google_places_sdk_plus_http"
+          # Overrides for the package under test
           write_overrides "../" "${{ matrix.package }}/pubspec_overrides.yaml" "${{ matrix.package }}"
           if [ -d "${{ matrix.package }}/example" ]; then
             write_overrides "../../" "${{ matrix.package }}/example/pubspec_overrides.yaml" ""
           fi
+
+      # Monorepo: generate freezed/json_serializable code for packages that need it
+      - name: Generate code (platform_interface)
+        run: |
+          cd google_places_sdk_plus_platform_interface
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Generate code (http)
+        run: |
+          cd google_places_sdk_plus_http
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
 
       - name: Check formatting
         run: dart format --set-exit-if-changed .
