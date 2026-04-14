@@ -136,7 +136,7 @@ class FlutterGooglePlacesSdkWebPlugin extends FlutterGooglePlacesSdkPlatform {
                     ? null
                     : placeTypesFilter
                 ..includedRegionCodes = countries
-                ..locationRestriction = _boundsToWeb(locationBias)
+                ..locationBias = _boundsToWeb(locationBias)
                 ..language = _language,
             )
             as JSPromise<JSObject>?;
