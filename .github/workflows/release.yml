@@ -8,6 +8,11 @@ on:
         required: false
         type: boolean
         default: true
+      release_tag:
+        description: 'Tag for GitHub Release (empty = skip release step). Example: google_places_sdk_plus_web-v1.1.1'
+        required: false
+        type: string
+        default: ''
 
 env:
   FLUTTER_VERSION: '3.41.7'
@@ -98,6 +103,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
+    env:
+      DRY_RUN: ${{ inputs.dry_run }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -123,71 +130,64 @@ jobs:
           flutter pub get
           dart run build_runner build --delete-conflicting-outputs
 
-      # Layer 1: platform_interface (no internal deps)
-      - name: Publish platform_interface
+      # Publish each package in dependency order. The helper skips packages whose
+      # pubspec.yaml version is already published on pub.dev, so the workflow is
+      # idempotent and can be re-run safely for partial (single-package) releases.
+      - name: Publish packages (idempotent)
         run: |
-          cd google_places_sdk_plus_platform_interface
-          dart pub publish ${{ inputs.dry_run && '--dry-run' || '--force' }}
+          set -e
+          publish_pkg() {
+            local pkg="$1"
+            echo "::group::$pkg"
+            pushd "$pkg" > /dev/null
+            local LOCAL
+            LOCAL=$(grep "^version:" pubspec.yaml | awk '{print $2}' | tr -d '"')
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "dry-run: $pkg @ $LOCAL"
+              dart pub publish --dry-run
+            else
+              local REMOTE
+              REMOTE=$(curl -sf "https://pub.dev/api/packages/$pkg" \
+                | python3 -c "import json,sys;print(json.load(sys.stdin)['latest']['version'])" 2>/dev/null \
+                || echo "none")
+              if [ "$LOCAL" = "$REMOTE" ]; then
+                echo "::notice::$pkg — already at $LOCAL on pub.dev, skipping"
+              else
+                echo "::notice::$pkg — publishing $LOCAL (pub.dev has $REMOTE)"
+                dart pub publish --force
+              fi
+            fi
+            popd > /dev/null
+            echo "::endgroup::"
+          }
+          wait_for_indexing() {
+            if [ "$DRY_RUN" != "true" ]; then sleep 30; fi
+          }
 
-      - name: Wait for pub.dev indexing
-        if: ${{ !inputs.dry_run }}
-        run: sleep 30
+          # Layer 1: platform_interface (no internal deps)
+          publish_pkg google_places_sdk_plus_platform_interface
+          wait_for_indexing
 
-      # Layer 2: http (depends on platform_interface)
-      - name: Publish http
-        run: |
-          cd google_places_sdk_plus_http
-          dart pub publish ${{ inputs.dry_run && '--dry-run' || '--force' }}
+          # Layer 2: http (depends on platform_interface)
+          publish_pkg google_places_sdk_plus_http
+          wait_for_indexing
 
-      - name: Wait for pub.dev indexing
-        if: ${{ !inputs.dry_run }}
-        run: sleep 30
+          # Layer 3: platform implementations
+          publish_pkg google_places_sdk_plus_android
+          publish_pkg google_places_sdk_plus_ios
+          publish_pkg google_places_sdk_plus_web
+          publish_pkg google_places_sdk_plus_linux
+          publish_pkg google_places_sdk_plus_macos
+          publish_pkg google_places_sdk_plus_windows
+          wait_for_indexing
 
-      # Layer 3: platform implementations
-      - name: Publish android
-        run: |
-          cd google_places_sdk_plus_android
-          dart pub publish ${{ inputs.dry_run && '--dry-run' || '--force' }}
-
-      - name: Publish ios
-        run: |
-          cd google_places_sdk_plus_ios
-          dart pub publish ${{ inputs.dry_run && '--dry-run' || '--force' }}
-
-      - name: Publish web
-        run: |
-          cd google_places_sdk_plus_web
-          dart pub publish ${{ inputs.dry_run && '--dry-run' || '--force' }}
-
-      - name: Publish linux
-        run: |
-          cd google_places_sdk_plus_linux
-          dart pub publish ${{ inputs.dry_run && '--dry-run' || '--force' }}
-
-      - name: Publish macos
-        run: |
-          cd google_places_sdk_plus_macos
-          dart pub publish ${{ inputs.dry_run && '--dry-run' || '--force' }}
-
-      - name: Publish windows
-        run: |
-          cd google_places_sdk_plus_windows
-          dart pub publish ${{ inputs.dry_run && '--dry-run' || '--force' }}
-
-      - name: Wait for pub.dev indexing
-        if: ${{ !inputs.dry_run }}
-        run: sleep 30
-
-      # Layer 4: main package (depends on all platform packages)
-      - name: Publish main package
-        run: |
-          cd google_places_sdk_plus
-          dart pub publish ${{ inputs.dry_run && '--dry-run' || '--force' }}
+          # Layer 4: main package (depends on all platform packages)
+          publish_pkg google_places_sdk_plus
 
   release:
     name: Create GitHub Release
     needs: publish
-    if: ${{ !inputs.dry_run }}
+    if: ${{ !inputs.dry_run && inputs.release_tag != '' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -198,6 +198,6 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.0
-          name: v1.0.0
+          tag_name: ${{ inputs.release_tag }}
+          name: ${{ inputs.release_tag }}
           generate_release_notes: true

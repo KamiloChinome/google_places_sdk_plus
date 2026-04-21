@@ -1,3 +1,7 @@
+## 1.1.1
+
+* Fix `findAutocompletePredictions` on web: `locationBias` was being mapped to the JS `locationRestriction` property, causing hard-filtered (often empty) results instead of biased ranking. Now correctly sets `locationBias` on the underlying `AutocompleteRequest`. Thanks @elitree (#27, #28).
+
 ## 1.1.0
 
 * Update minimum SDK constraints: Dart >=3.11.0, Flutter >=3.41.0
