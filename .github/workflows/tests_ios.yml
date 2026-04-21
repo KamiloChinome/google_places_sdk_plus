@@ -16,7 +16,7 @@ on:
       - 'analysis_options.yaml'
 
 env:
-  FLUTTER_VERSION: '3.38.5'
+  FLUTTER_VERSION: '3.41.7'
 
 jobs:
   dart-tests:
