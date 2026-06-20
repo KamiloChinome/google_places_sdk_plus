@@ -1,3 +1,7 @@
+## 1.1.1
+
+* Migrate to built-in Kotlin: the Kotlin Gradle Plugin is now only applied on Android Gradle Plugin (AGP) versions below 9.0. AGP 9.0+ removed support for plugins applying KGP directly, which broke builds for apps on Flutter 3.44+ (see flutter/flutter#181383). The plugin still builds on Flutter 3.41–3.43.
+
 ## 1.1.0
 
 * Update minimum SDK constraints: Dart >=3.11.0, Flutter >=3.41.0
