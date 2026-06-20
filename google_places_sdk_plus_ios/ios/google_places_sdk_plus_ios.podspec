@@ -17,7 +17,9 @@ Google Places API (New) including place details, autocomplete, text search, and 
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Kamilo Chinome' => '' }
   s.source           = { :path => '.' }
-  s.source_files = 'Classes/**/*'
+  # Sources live under the Swift Package Manager layout; CocoaPods and SPM share
+  # the same source directory so there is a single source of truth.
+  s.source_files = 'google_places_sdk_plus_ios/Sources/google_places_sdk_plus_ios/**/*.swift'
   s.dependency 'Flutter'
   s.platform = :ios, '16.0'
 

@@ -10,15 +10,23 @@ let package = Package(
     ],
     products: [
         .library(
-            name: "flutter-google-places-sdk-ios",
+            name: "google-places-sdk-plus-ios",
             targets: ["google_places_sdk_plus_ios"]
         )
     ],
-    dependencies: [],
+    dependencies: [
+        // Google Places SDK for iOS. The `GooglePlaces` product is the
+        // Objective-C wrapper API (GMSPlacesClient, GMSPlace, …) used by this
+        // plugin, mirroring the CocoaPods `GooglePlaces` dependency in the
+        // podspec so both build systems link the same SDK.
+        .package(url: "https://github.com/googlemaps/ios-places-sdk", from: "10.1.0")
+    ],
     targets: [
         .target(
             name: "google_places_sdk_plus_ios",
-            dependencies: [],
+            dependencies: [
+                .product(name: "GooglePlaces", package: "ios-places-sdk")
+            ],
             resources: [
                 // If your plugin requires a privacy manifest, for example if it
                 // uses any required reason APIs, update the PrivacyInfo.xcprivacy

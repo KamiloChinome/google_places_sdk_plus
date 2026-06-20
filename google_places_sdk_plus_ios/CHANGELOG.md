@@ -1,3 +1,8 @@
+## 1.2.0
+
+* Add Swift Package Manager (SwiftPM) support. The plugin now ships a `Package.swift` (under `ios/google_places_sdk_plus_ios/`) declaring the `GooglePlaces` SDK dependency, so apps that have migrated to SwiftPM build without CocoaPods. CocoaPods remains fully supported — both build systems share the same sources under `Sources/`.
+* Convert the iOS plugin to a pure-Swift target: removed the legacy Objective-C registration shim (`FlutterGooglePlacesSdkIosPlugin.h/.m`); registration already went through the Swift `SwiftFlutterGooglePlacesSdkIosPlugin` class (the `pluginClass`).
+
 ## 1.1.0
 
 * Update minimum SDK constraints: Dart >=3.11.0, Flutter >=3.41.0
