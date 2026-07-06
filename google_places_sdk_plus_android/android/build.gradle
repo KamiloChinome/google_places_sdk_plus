@@ -61,10 +61,27 @@ android {
     }
 }
 
-kotlin {
-    compilerOptions {
-        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+// Set the Kotlin jvmTarget via the typed extension instead of the top-level
+// `kotlin { }` Groovy accessor. When Kotlin is provided by Flutter's built-in
+// Kotlin (AGP 9.0+ / Flutter 3.44+) rather than by the `kotlin-android` plugin
+// applied above, that accessor is not registered on the project and the build
+// failed with "Could not find method kotlin()" (issue #34). Configuring the
+// KotlinAndroidProjectExtension once the Kotlin plugin is present works whether
+// KGP was applied here (AGP < 9) or by Flutter (AGP 9.0+), and is skipped
+// silently if Kotlin is never applied.
+def configureKotlinJvmTarget = {
+    project.extensions.configure(org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension) {
+        it.compilerOptions {
+            jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+        }
     }
+}
+if (agpMajor < 9) {
+    // The kotlin-android plugin was applied above, so the extension exists now.
+    configureKotlinJvmTarget()
+} else {
+    // Flutter's built-in Kotlin applies KGP; configure it once it is present.
+    project.plugins.withId("org.jetbrains.kotlin.android") { configureKotlinJvmTarget() }
 }
 
 dependencies {

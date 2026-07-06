@@ -1,3 +1,7 @@
+## 1.1.2
+
+* Fix Android build failure `Could not find method kotlin()` on Flutter 3.44+ / AGP 9.0+ (issue #34). The 1.1.1 built-in-Kotlin migration still relied on the top-level `kotlin { }` Groovy accessor, which is not registered when Kotlin is provided by Flutter's built-in Kotlin rather than the `kotlin-android` plugin. The `jvmTarget` is now set via the typed `KotlinAndroidProjectExtension`, configured once the Kotlin plugin is present, so the build works on both AGP 8.x and AGP 9.0+.
+
 ## 1.1.1
 
 * Migrate to built-in Kotlin: the Kotlin Gradle Plugin is now only applied on Android Gradle Plugin (AGP) versions below 9.0. AGP 9.0+ removed support for plugins applying KGP directly, which broke builds for apps on Flutter 3.44+ (see flutter/flutter#181383). The plugin still builds on Flutter 3.41–3.43.
