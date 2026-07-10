@@ -1,3 +1,7 @@
+## 1.1.3
+
+* Fix Android build failure `cannot find symbol ... FlutterGooglePlacesSdkPlugin` in `GeneratedPluginRegistrant.java` (issue #36). The 1.1.1/1.1.2 migration decided whether to apply the Kotlin Gradle Plugin (KGP) from the AGP major version alone, assuming AGP 9.0+ always means built-in Kotlin compiles the plugin's Kotlin. But Flutter 3.44+ ships with built-in Kotlin **disabled** by default (`android.builtInKotlin=false` in the app's `gradle.properties`), even on AGP 9.0+. In that configuration KGP was skipped *and* built-in Kotlin was off, so the plugin's Kotlin was never compiled. The plugin now applies KGP unless the app has actually opted in to built-in Kotlin (`android.builtInKotlin=true`), which is the correct signal and keeps working on AGP 8.x and AGP 9.0+.
+
 ## 1.1.2
 
 * Fix Android build failure `Could not find method kotlin()` on Flutter 3.44+ / AGP 9.0+ (issue #34). The 1.1.1 built-in-Kotlin migration still relied on the top-level `kotlin { }` Groovy accessor, which is not registered when Kotlin is provided by Flutter's built-in Kotlin rather than the `kotlin-android` plugin. The `jvmTarget` is now set via the typed `KotlinAndroidProjectExtension`, configured once the Kotlin plugin is present, so the build works on both AGP 8.x and AGP 9.0+.

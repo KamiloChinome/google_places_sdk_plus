@@ -22,13 +22,26 @@ allprojects {
 
 apply plugin: "com.android.library"
 
-// AGP 9.0+ removed support for a plugin applying the Kotlin Gradle Plugin (KGP)
-// directly; Flutter 3.44+ provides Kotlin built-in instead. Apply KGP manually
-// only on older AGP so this plugin keeps building on Flutter 3.41–3.43 while no
-// longer breaking apps that use AGP 9.0+ / built-in Kotlin.
+// Decide whether this plugin must apply the Kotlin Gradle Plugin (KGP) itself.
+//
+// AGP 9.0+ can compile Kotlin without KGP ("built-in Kotlin"), but Flutter 3.44+
+// ships with built-in Kotlin DISABLED by default: its migrator writes
+// `android.builtInKotlin=false` into the app's gradle.properties so legacy KGP
+// keeps working during the transition — and that holds even on AGP 9.0+.
+//
+// So the AGP major version alone can't tell us who compiles the Kotlin (issue
+// #36): on AGP 9 with built-in Kotlin off, skipping KGP leaves this plugin's
+// Kotlin uncompiled and the app fails with "cannot find symbol
+// FlutterGooglePlacesSdkPlugin" while building GeneratedPluginRegistrant.java.
+//
+// Rule: apply KGP unless the app has actually opted in to built-in Kotlin.
+// Flutter's temporary legacy-KGP support (flutter/flutter#183909) keeps applying
+// KGP valid on AGP 9.0+ while built-in Kotlin is disabled. `android.builtInKotlin`
+// is a root Gradle property, so it is visible from this plugin subproject and is
+// absent (→ KGP applied) for standalone Gradle / CI builds.
 // https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors
-def agpMajor = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')[0] as int
-if (agpMajor < 9) {
+def builtInKotlinEnabled = project.findProperty("android.builtInKotlin")?.toString()?.toBoolean() ?: false
+if (!builtInKotlinEnabled) {
     apply plugin: "kotlin-android"
 }
 
@@ -62,13 +75,12 @@ android {
 }
 
 // Set the Kotlin jvmTarget via the typed extension instead of the top-level
-// `kotlin { }` Groovy accessor. When Kotlin is provided by Flutter's built-in
-// Kotlin (AGP 9.0+ / Flutter 3.44+) rather than by the `kotlin-android` plugin
-// applied above, that accessor is not registered on the project and the build
-// failed with "Could not find method kotlin()" (issue #34). Configuring the
-// KotlinAndroidProjectExtension once the Kotlin plugin is present works whether
-// KGP was applied here (AGP < 9) or by Flutter (AGP 9.0+), and is skipped
-// silently if Kotlin is never applied.
+// `kotlin { }` Groovy accessor. When Kotlin is provided by the app's built-in
+// Kotlin rather than by the `kotlin-android` plugin applied above, that accessor
+// is not registered on the project and the build failed with "Could not find
+// method kotlin()" (issue #34). Configuring the KotlinAndroidProjectExtension
+// once the Kotlin plugin is present works whether KGP was applied here or by the
+// app's built-in Kotlin, and is skipped silently if Kotlin is never applied.
 def configureKotlinJvmTarget = {
     project.extensions.configure(org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension) {
         it.compilerOptions {
@@ -76,11 +88,11 @@ def configureKotlinJvmTarget = {
         }
     }
 }
-if (agpMajor < 9) {
-    // The kotlin-android plugin was applied above, so the extension exists now.
+if (!builtInKotlinEnabled) {
+    // We applied the kotlin-android plugin above, so the extension exists now.
     configureKotlinJvmTarget()
 } else {
-    // Flutter's built-in Kotlin applies KGP; configure it once it is present.
+    // The app's built-in Kotlin applies KGP; configure it once it is present.
     project.plugins.withId("org.jetbrains.kotlin.android") { configureKotlinJvmTarget() }
 }
 
