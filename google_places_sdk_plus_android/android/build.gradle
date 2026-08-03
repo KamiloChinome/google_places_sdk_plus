@@ -39,10 +39,21 @@ apply plugin: "com.android.library"
 // KGP valid on AGP 9.0+ while built-in Kotlin is disabled. `android.builtInKotlin`
 // is a root Gradle property, so it is visible from this plugin subproject and is
 // absent (→ KGP applied) for standalone Gradle / CI builds.
+//
+// KGP is applied through `pluginManager` rather than the `apply plugin: "..."`
+// statement on purpose (issue #39). Flutter's `detectApplyingKotlinGradlePlugin`
+// decides which plugins "apply KGP" by regex-matching the *text* of this file, not
+// by inspecting the plugin container, so a conditional `apply plugin:` line still
+// counts as unconditional and produces "WARNING: Your app uses the following
+// plugins that apply Kotlin Gradle Plugin (KGP): google_places_sdk_plus_android".
+// With no textual match, Flutter 3.44+ applies `kotlin-android` to this subproject
+// itself whenever built-in Kotlin is not in charge — exactly the same runtime
+// behaviour as the branch below, which stays for Flutter 3.41–3.43 where that
+// fallback does not exist yet.
 // https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors
 def builtInKotlinEnabled = project.findProperty("android.builtInKotlin")?.toString()?.toBoolean() ?: false
 if (!builtInKotlinEnabled) {
-    apply plugin: "kotlin-android"
+    project.pluginManager.apply("kotlin-android")
 }
 
 android {
