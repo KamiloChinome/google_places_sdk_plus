@@ -5,5 +5,10 @@
   "[dart]": {
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "Dart-Code.dart-code"
-  }
+  },
+  // Point the Dart extension at the FVM SDK for this project, so the editor
+  // analyzes with the same Flutter as the CLI. `fvm use` writes the pinned
+  // version here instead (".fvm/versions/<v>"); the stable "flutter_sdk"
+  // symlink means a version bump only touches .fvmrc, not this file.
+  "dart.flutterSdkPath": ".fvm/flutter_sdk"
 }
